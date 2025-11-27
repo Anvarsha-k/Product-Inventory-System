@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
-	"google.golang.org/genproto/googleapis/type/decimal"
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
