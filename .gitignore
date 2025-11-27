@@ -1,0 +1,39 @@
+
+# Go Backend Ignored Files
+
+# Binaries
+/backend/cmd/server/server
+/backend/cmd/server/main
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Build outputs
+/backend/bin/
+/backend/tmp/
+
+# Go test cache
+*.test
+*.out
+
+# Dependency directories
+/backend/vendor/
+
+# IDE configs
+.vscode/
+.idea/
+
+# Go workspace files
+go.work
+go.work.sum
+
+# Logs
+*.log
+
+# Environment variable
+.env
+
+
+
