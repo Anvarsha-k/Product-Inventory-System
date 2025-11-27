@@ -27,8 +27,9 @@ func main() {
 
 	api := app.Group("/api")
 	api.Post("/products", handlers.CreateProduct)
-	api.Get("/products", handlers.ListProducts)
+	api.Get("/Listproducts", handlers.ListProducts)
 	api.Post("/stock/adjust", handlers.AdjustStock)
+	api.Get("/stock/report", handlers.StockReport)
 
 	log.Printf("Server running on :%s", port)
 	if err := app.Listen(":" + port); err != nil {

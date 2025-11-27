@@ -228,3 +228,74 @@ func AdjustStock(c *fiber.Ctx) error {
 
 	return utils.Success(c, fiber.StatusOK, fiber.Map{"message": "stock adjusted"})
 }
+
+// StockReport - GET /api/stock/report?from=...&to=...&product_id=...
+
+func StockReport(c *fiber.Ctx) error {
+	fromStr := c.Query("from")
+	toStr := c.Query("to")
+	productID := c.Query("product_id")
+
+	var from time.Time
+	var to time.Time
+	var err error
+	if fromStr != "" {
+		from, err = time.Parse(time.RFC3339, fromStr)
+		if err != nil {
+			return utils.Error(c, fiber.StatusBadRequest, "INVALID_DATE", "invalid from date", nil)
+		}
+	}
+	if toStr != "" {
+		to, err = time.Parse(time.RFC3339, toStr)
+		if err != nil {
+			return utils.Error(c, fiber.StatusBadRequest, "INVALID_DATE", "invalid to date", nil)
+		}
+	}
+
+	q := db.DB.Model(&models.StockTransaction{})
+	if !from.IsZero() {
+		q = q.Where("transaction_date >= ?", from)
+	}
+	if !to.IsZero() {
+		q = q.Where("transaction_date <= ?", to)
+	}
+	if productID != "" {
+		q = q.Where("product_id = ?", productID)
+	}
+
+	var txs []models.StockTransaction
+	if err := q.Order("transaction_date desc").Find(&txs).Error; err != nil {
+		return utils.Error(c, fiber.StatusInternalServerError, "DB_ERROR", err.Error(), nil)
+	}
+
+	type Summary struct {
+		ProductID string          `json:"product_id"`
+		StockIn   decimal.Decimal `json:"stock_in"`
+		StockOut  decimal.Decimal `json:"stock_out"`
+		Net       decimal.Decimal `json:"net"`
+	}
+	summaries := map[string]*Summary{}
+	for _, t := range txs {
+		pid := t.ProductID.String()
+		if _, ok := summaries[pid]; !ok {
+			summaries[pid] = &Summary{ProductID: pid, StockIn: decimal.Zero, StockOut: decimal.Zero, Net: decimal.Zero}
+		}
+		if t.TransactionType == "IN" {
+			summaries[pid].StockIn = summaries[pid].StockIn.Add(t.Quantity)
+			summaries[pid].Net = summaries[pid].Net.Add(t.Quantity)
+		} else {
+			summaries[pid].StockOut = summaries[pid].StockOut.Add(t.Quantity)
+			summaries[pid].Net = summaries[pid].Net.Sub(t.Quantity)
+		}
+	}
+
+	out := make([]Summary, 0, len(summaries))
+	for _, v := range summaries {
+		out = append(out, *v)
+	}
+
+	return utils.Success(c, fiber.StatusOK, fiber.Map{
+		"transactions": txs,
+		"summary":      out,
+	})
+}
