@@ -15,9 +15,9 @@ import (
 var DB *gorm.DB
 
 func Init() {
-	dsn := os.Getenv("DATABASE_NAME")
+	dsn := os.Getenv("DATABASE_DSN")
 	if dsn == "" {
-		log.Fatal("DATABASE_DSN not set. Example: host=127.0.0.1 user=postgres password=root dbname=inventory port=5432 sslmode=disable TimeZone=UTC")
+		log.Fatal("DATABASE_DSN not set")
 	}
 
 	newLogger := logger.New(
