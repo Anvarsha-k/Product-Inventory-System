@@ -1,6 +1,6 @@
 
 # Go Backend Ignored Files
-
+frontend/node_modules/
 # Binaries
 /backend/cmd/server/server
 /backend/cmd/server/main
